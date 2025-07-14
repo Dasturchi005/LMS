@@ -3,7 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate, login
-
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404
 from .models import User
 from .serializers import UserSerializer
 
@@ -43,3 +46,22 @@ class UserLoginView(APIView):
             login(request, user)
             return Response({"message": "Login muvaffaqiyatli", "role": user.role})
         return Response({"error": "Login yoki parol xato"}, status=401)
+
+
+@login_required
+def dashboard_redirect(request):
+    user = request.user
+    if user.is_superuser:
+        return redirect('superuser_dashboard')
+    elif user.role == 'director':
+        return redirect('director_dashboard')
+    elif user.role == 'admin':
+        return redirect('admin_dashboard')
+    elif user.role == 'teacher':
+        return redirect('teacher_dashboard')
+    elif user.role == 'student':
+        return redirect('student_dashboard')
+    elif user.role == 'parent':
+        return redirect('parent_dashboard')
+    else:
+        return redirect('login')
